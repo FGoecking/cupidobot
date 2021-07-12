@@ -1,7 +1,7 @@
 from os import read, write
 import tweepy
-import time
 import random
+from gerarfrases import fraseAleatoria
 
 #keys
 api_key = ''
@@ -17,53 +17,67 @@ auth.set_access_token(access_token, secret_access_token)
 #chamada da api
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-procurar = ['#Solteiro', '#Solteira', '#Solteire', '#solteiro']
-p = "solteiro"
+procurar = ['#Solteiro', '#Solteira', '#Solteire']
 mencoes = api.mentions_timeline()
-print(mencoes[0].text)
 
-def fraseAleatoria(genero: str) -> str:
-    gen = genero
-    if gen.lower() == "#solteiro":
-        p1 = ['para este gostoso', 'para este lindo', 'para esta belezura', 'para este chuchuzinho', 'para este colorido da capricho']
-        escolha = random.choice(p1)
-        return escolha
-    elif gen.lower() == "#solteira":
-        p1 = ['para esta gostosa', 'para esta linda', 'para esta belezura', 'para esta pitchuquinha', 'para este docinho']
-        escolha = random.choice(p1)
-        return escolha
-    elif gen.lower() == "#solteire":
-        p1 = ['para este gostose', 'para este linde', 'para esta belezura', 'para este docinho', 'para este colorido da capricho']
-        escolha = random.choice(p1)
-        return escolha
 
-def namorade(genero: str) -> str:
-    gen = genero
-    if gen == '#garotos':
-        namo = 'Um namoradinho'
-        return namo
-    elif gen == '#garotas':
-        namo = 'Uma namoradinha'
-        return namo
-    elif gen == '#garotos':
-        namo = 'Ume namoradinhe'
-        return namo
+def retornarURL(urllocal) -> str:
+    '''
+    Pega o namespace do tweet junto com o ID do tweet e retorna como um link
+    para que possa ser feito um quote
+    '''
+    json = urllocal[0]._json
+    tweet_id = json.get('id')
+    tweet_namespace = json.get('user')
+    namespace = tweet_namespace.get('screen_name')
+    print(namespace)
 
-def checarTexto(mencoes):
+    url = ('https://twitter.com/%s/status/%s?s=20' % (namespace, tweet_id))
+    return url
+
+def retornarTexto(urllocal) -> str:
+
+    gen = ['#solteiro', '#solteira', '#solteire']
+    namo = ['#namorada', '#namorado', '#namorade']
+    i, j = 'string', 'string'
+    json = urllocal[0]._json
+    tweet_text = json.get('text')
+    print(tweet_text)
+    
+    for i in gen:
+        if i in tweet_text:
+            genero = i
+            for j in namo:
+                if j in tweet_text:
+                
+                    namor = j
+                    print(genero)
+                    print(namor)
+                    frase = fraseAleatoria(genero, namor)
+                    return frase
+                
+            
+    
+
+
+url = retornarURL(mencoes)
+texto = retornarTexto(mencoes)
+
+tweet = texto+' '+ url
+api.update_status(tweet)
+
+
+
+
+'''def checarTexto(mencoes):
     for item in procurar:
         if item in mencoes[0].text:
             print("achei")
             return True
         else:
             print("nao achei")
+    
+    
+    print(json.get('text'))'''
 
-def dar_qrt(genero:str, namo:str):
-    #tweepy.retweet()
-    pass
 
-dar_qrt(checarTexto(mencoes))
-escolha = fraseAleatoria('#solteire')
-print(escolha)
-namo = namorade('#garotos')
-print(namo)
-'''p1 = ['Um namoradinho', 'Uma namoradinha', 'Ume namoradinhe']'''
