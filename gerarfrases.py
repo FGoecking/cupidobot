@@ -14,6 +14,8 @@ def genero(genero: str) -> str:
         p1 = ['para este gostose', 'para este linde', 'para esta belezura', 'para este docinho', 'para este colorido da capricho']
         escolha = random.choice(p1)
         return escolha
+    else:
+        return 'para essa pessoa'
 
 def namorade(namorade: str) -> str:
     gen_namo = namorade.lower()

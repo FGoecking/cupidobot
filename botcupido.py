@@ -1,6 +1,5 @@
-from os import read, write
+from time import sleep
 import tweepy
-import random
 from gerarfrases import fraseAleatoria
 
 #keys
@@ -17,31 +16,33 @@ auth.set_access_token(access_token, secret_access_token)
 #chamada da api
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-procurar = ['#Solteiro', '#Solteira', '#Solteire']
-mencoes = api.mentions_timeline()
 
 
-def retornarURL(urllocal) -> str:
+def retornarURL(json) -> str:
     '''
     Pega o namespace do tweet junto com o ID do tweet e retorna como um link
     para que possa ser feito um quote
     '''
-    json = urllocal[0]._json
-    tweet_id = json.get('id')
-    tweet_namespace = json.get('user')
+    jason = json[0]._json
+    tweet_id = jason.get('id')
+    tweet_namespace = jason.get('user')
     namespace = tweet_namespace.get('screen_name')
     print(namespace)
 
     url = ('https://twitter.com/%s/status/%s?s=20' % (namespace, tweet_id))
     return url
 
-def retornarTexto(urllocal) -> str:
+def retornarTexto(json) -> str:
+    '''
+    Busca uma # entre as listas de # e chama a função para criar a frase aleatória
+    do tweet, retornando a frase aleatória (string)
+    '''
 
     gen = ['#solteiro', '#solteira', '#solteire']
     namo = ['#namorada', '#namorado', '#namorade']
     i, j = 'string', 'string'
-    json = urllocal[0]._json
-    tweet_text = json.get('text')
+    jason = json[0]._json
+    tweet_text = jason.get('text')
     print(tweet_text)
     
     for i in gen:
@@ -58,26 +59,47 @@ def retornarTexto(urllocal) -> str:
                 
             
     
+def checarImagem(json):
+    '''
+    Verifica se um tweet marcando o bot tem ou não imagem
+    '''
+    jason = json[0]._json
+    entities = jason.get('entities')
+    media = entities.get('media')
+    if media != None:
+        return True
+    else:
+        return False
+
+def retornarID(json):
+    jason = json[0]._json
+    tweet_id = jason.get('id')
+    return tweet_id
+
+def retornarArroba(json):
+    jason = json[0]._json
+    tweet_user = jason.get('user')
+    tweet_arroba = tweet_user.get('screen_name')
+    return tweet_arroba
+
+mencoes = api.mentions_timeline()
 
 
-url = retornarURL(mencoes)
-texto = retornarTexto(mencoes)
-
-tweet = texto+' '+ url
-api.update_status(tweet)
-
-
-
-
-'''def checarTexto(mencoes):
-    for item in procurar:
-        if item in mencoes[0].text:
-            print("achei")
-            return True
-        else:
-            print("nao achei")
-    
-    
-    print(json.get('text'))'''
+while True:
+    mencoes = api.mentions_timeline()
+    checando = checarImagem(mencoes)
+    if checando == True:
+        texto = retornarTexto(mencoes)
+        url = retornarURL(mencoes)
+        tweet = ("%s %s"% (texto, url))
+        api.update_status(tweet)
+        print('retuitado')
+    elif checando != True:
+        tweet_arroba = retornarArroba(mencoes)
+        tweet_id = retornarID(mencoes)
+        tweet = ('@%s Use uma fotinha para chamar atenção!' % (tweet_arroba))
+        api.update_status(status=tweet, in_reply_to_status_id=tweet_id)
+        print('tweet sem fotinha')
+    sleep(120)
 
 
